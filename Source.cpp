@@ -5,6 +5,8 @@
 #include<vector>
 #include"Engine.h"
 #include"texturecontrol.h"
+#include"transform.h"
+#include"simobject.h"	
 
 using namespace std;
 

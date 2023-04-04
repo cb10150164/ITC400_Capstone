@@ -3,8 +3,9 @@
 #include<SDL.h>// used to write to screen
 #include<SDL_image.h>// trying out new librarys yayyyyy
 #include<cmath>
-#include<vector>
+#include"vectormath.h"
 #include"texturecontrol.h"
+#include"transform.h"
 
 Engine* Engine::s_instance = nullptr;
 
@@ -15,6 +16,9 @@ Engine::Engine()
 
 bool Engine::init()
 {
+	//vectormath v1, v2;
+	//transfom t;
+
 	//m_isrunning = true;
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)// makes sure sdl is working correctly
 	{
@@ -45,6 +49,8 @@ bool Engine::init()
 		std::cout << "rendor creation error" << SDL_GetError() << std::endl;
 		return false;
 	}
+
+	texturecontrol::getinstance()->load("aligator","alligator.png");
 
 
 
@@ -77,8 +83,16 @@ void Engine::update()
 
 void Engine::render()
 {
-	std::cout << "rendering" << std::endl;
-	
+	SDL_SetRenderDrawColor(m_render, 200, 200, 0, 255);
+
+	// Clear the current rendering target with the drawing color
+	SDL_RenderClear(m_render);
+
+	// Draw your texture
+	//texturecontrol::getinstance()->draw("aligator", 50, 50, 1280, 720);
+
+	// Update the screen with the rendered content
+	SDL_RenderPresent(m_render);
 }
 
 void Engine::Events() 

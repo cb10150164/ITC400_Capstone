@@ -3,7 +3,7 @@
 #include<SDL_image.h>// trying out new librarys yayyyyy
 #include<iostream>
 #include<cmath>
-#include<vector>
+
 
 #define screen_w 900
 #define screen_h 600

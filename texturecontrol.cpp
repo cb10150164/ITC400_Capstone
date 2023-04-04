@@ -35,11 +35,13 @@ bool texturecontrol::load(std::string id, std::string filename)
 	return true;
 }
 
+// i hate this function
 void texturecontrol::draw(std::string id, int x, int y, int width, int height, SDL_RendererFlip flip)
 {
-	SDL_Rect srcRect = { 0, 0, width, height }; // source
+	SDL_Rect srcRect = { 0, 0, width, height }; // reads in the source image
 	SDL_Rect dstRect = { x, y, width, height }; // destanation
 	SDL_RenderCopyEx(Engine::Getinstance()->getrender(), m_texturemap[id], &srcRect, &dstRect, 0, nullptr, flip );
+
 }
 
 void texturecontrol::drop(std::string id)
