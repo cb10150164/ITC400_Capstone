@@ -14,10 +14,13 @@ BROWN = (139,69,19)
 WIDTH = 1024   # 16 * 64 or 32 * 32 or 64 * 16
 HEIGHT = 768  # 16 * 48 or 32 * 24 or 64 * 12
 FPS = 60
-TITLE = "Tilemap Demo"
+TITLE = "Simulation"
 BGCOLOR = DARKGREY
 
 TILESIZE = 8
 GRIDWIDTH = int(WIDTH / TILESIZE)
 GRIDHEIGHT = int(HEIGHT / TILESIZE)
 
+#time 
+DAY_LENGTH = 600  # Length of a day in seconds (10 minutes)
+DAY_LENGTH_SECONDS = 1 * 60

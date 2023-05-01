@@ -9,9 +9,12 @@ class Game:
     def __init__(self):
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
-        pg.display.set_caption(TITLE)
+        self.previous_day = 0
+        self.current_day = 1
+        pg.display.set_caption(f"{TITLE} - Day {self.current_day}")
         self.clock = pg.time.Clock()
         pg.key.set_repeat(500, 100)
+        self.day_elapsed_time = 0
         self.load_data()
 
     def load_data(self):
@@ -53,8 +56,13 @@ class Game:
         self.simulation_time = 0
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000
+            self.day_elapsed_time += self.dt
             self.simulation_time += self.dt
-            #self.rabbit.consume_grass(self.active_grass_tiles, self.simulation_time)
+            self.current_day = int(self.simulation_time // DAY_LENGTH_SECONDS) + 1
+
+            if self.day_elapsed_time >= DAY_LENGTH_SECONDS:
+                self.day_elapsed_time -= DAY_LENGTH_SECONDS
+           
             
             for grass in self.consumed_grass_tiles:
                 if self.simulation_time - grass.consumption_time >= grass.regrowth_time:
@@ -86,8 +94,15 @@ class Game:
         pg.quit()
         sys.exit()
 
+    def update_window_caption(self):
+        if self.previous_day != self.current_day:
+            pg.display.set_caption(f"{TITLE} - Day {self.current_day}")
+            self.previous_day = self.current_day
+
     def update(self):
         self.all_sprites.update()
+        pg.display.set_caption(f"{TITLE} - Day {self.current_day}")
+        self.previous_day = self.current_day
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):

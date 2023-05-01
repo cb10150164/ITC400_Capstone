@@ -14,8 +14,8 @@ class Player(pg.sprite.Sprite):
 
     def move(self, dx=0, dy=0):
         if not self.collide_with_walls(dx, dy):
-            self.x += dx
-            self.y += dy
+            self.x = (self.x + dx) % GRIDWIDTH
+            self.y = (self.y + dy) % GRIDHEIGHT
 
     def collide_with_walls(self, dx=0, dy=0):
         for wall in self.game.walls:
@@ -123,8 +123,9 @@ class Rabbit(Animal):
        self.image = pg.Surface((TILESIZE, TILESIZE))
        self.image.fill(WHITE)
        self.rect = self.image.get_rect()
-       self.rect.x = x * TILESIZE
-       self.rect.y = y * TILESIZE
+       self.image = pg.transform.scale(self.image, (TILESIZE // 2, TILESIZE // 2)) # Scale the image
+       self.rect.x = x * TILESIZE+TILESIZE  // 4 # Center the sprite within the tile horizontally
+       self.rect.y = y * TILESIZE+TILESIZE  // 4
    
     def consume_grass(self, game, simulation_time):
         grass_to_consume = pg.sprite.spritecollide(self, game.grass_tiles, False)
