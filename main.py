@@ -12,10 +12,14 @@ class Game:
         self.previous_day = 0
         self.current_day = 1
         pg.display.set_caption(f"{TITLE} - Day {self.current_day}")
+        self.all_sprites = pg.sprite.LayeredUpdates()
+        self.background_sprites = pg.sprite.Group()
+        self.rabbit_sprite = pg.sprite.Group()
         self.clock = pg.time.Clock()
         pg.key.set_repeat(500, 100)
         self.day_elapsed_time = 0
         self.load_data()
+        
 
     def load_data(self):
         game_folder = path.dirname(__file__)
@@ -40,7 +44,7 @@ class Game:
                     self.player_sprite.add(self.player)
 
         self.active_grass_tiles = []
-        self.consumed_grass_tiles = []  # Add this line back
+        self.consumed_grass_tiles = []  
         for row in range(GRIDWIDTH):
             for col in range(GRIDWIDTH):
                 grass = Grass(self, col, row)
@@ -48,7 +52,8 @@ class Game:
                 self.grass_tiles.add(grass)
 
         self.rabbit = Rabbit(self, randint(0, GRIDWIDTH - 1), randint(0, GRIDHEIGHT - 1))
-        self.rabbit_sprite.add(self.rabbit)  # Add the rabbit to the rabbit sprite group
+        self.rabbit_sprite.add(self.rabbit)
+        self.all_sprites.add(self.rabbit)
 
 
     def run(self):
@@ -59,6 +64,7 @@ class Game:
             self.day_elapsed_time += self.dt
             self.simulation_time += self.dt
             self.current_day = int(self.simulation_time // DAY_LENGTH_SECONDS) + 1
+            self.rabbit.move_cooldown = 0
 
             if self.day_elapsed_time >= DAY_LENGTH_SECONDS:
                 self.day_elapsed_time -= DAY_LENGTH_SECONDS
@@ -103,6 +109,7 @@ class Game:
         self.all_sprites.update()
         pg.display.set_caption(f"{TITLE} - Day {self.current_day}")
         self.previous_day = self.current_day
+        self.grass_tiles.update()
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -113,7 +120,7 @@ class Game:
     def draw(self):
         self.screen.fill(BGCOLOR)
         self.draw_grid()
-        self.grass_tiles.draw(self.screen)
+        self.background_sprites.draw(self.screen)
         self.walls.draw(self.screen)
         self.player_sprite.draw(self.screen)
         self.rabbit_sprite.draw(self.screen)
@@ -122,5 +129,8 @@ class Game:
 if __name__ == "__main__":
     g = Game()
     g.new()
+    print("i am here")
     while True:
         g.run()
+
+
