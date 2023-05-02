@@ -34,6 +34,9 @@ class Game:
         self.grass_tiles = pg.sprite.Group()
         self.player_sprite = pg.sprite.Group()
         self.rabbit_sprite = pg.sprite.Group()  # Create the rabbit sprite group
+        self.bear_sprite = pg.sprite.Group()
+        self.boar_sprite = pg.sprite.Group()
+        self.alligator_sprite = pg.sprite.Group()
 
         for row, tiles in enumerate(self.map_data):
             for col, tile in enumerate(tiles):
@@ -52,8 +55,19 @@ class Game:
                 self.grass_tiles.add(grass)
 
         self.rabbit = Rabbit(self, randint(0, GRIDWIDTH - 1), randint(0, GRIDHEIGHT - 1))
+        self.bear = Bear(self, randint(0, GRIDWIDTH - 1), randint(0, GRIDHEIGHT - 1))
+        self.boar = Boar(self, randint(0, GRIDWIDTH - 1), randint(0, GRIDHEIGHT - 1))
+        self.alligator = Alligator(self, randint(0, GRIDWIDTH - 1), randint(0, GRIDHEIGHT - 1))
         self.rabbit_sprite.add(self.rabbit)
+        self.bear_sprite.add(self.bear)
+        self.boar_sprite.add(self.boar)
+        self.alligator_sprite.add(self.alligator)
         self.all_sprites.add(self.rabbit)
+
+        self.all_sprites.add(self.rabbit)
+        self.all_sprites.add(self.bear)
+        self.all_sprites.add(self.boar)
+        self.all_sprites.add(self.alligator)
 
 
     def run(self):
@@ -100,14 +114,28 @@ class Game:
         pg.quit()
         sys.exit()
 
-    def update_window_caption(self):
-        if self.previous_day != self.current_day:
-            pg.display.set_caption(f"{TITLE} - Day {self.current_day}")
-            self.previous_day = self.current_day
+    def count_population(self):
+        rabbit_count = 0
+        alligator_count = 0
+        bear_count = 0
+        boar_count = 0
+        for sprite in self.all_sprites:
+            if isinstance(sprite, Rabbit):
+                rabbit_count += 1
+            if isinstance(sprite, Alligator):  # Capitalize the class name
+                alligator_count += 1
+            if isinstance(sprite, Bear):
+                bear_count += 1
+            if isinstance(sprite, Boar):
+                boar_count += 1
+        return rabbit_count, bear_count, boar_count, alligator_count
+
+    
+    
 
     def update(self):
         self.all_sprites.update()
-        pg.display.set_caption(f"{TITLE} - Day {self.current_day}")
+        self.update_window_caption()
         self.previous_day = self.current_day
         self.grass_tiles.update()
 
@@ -124,7 +152,20 @@ class Game:
         self.walls.draw(self.screen)
         self.player_sprite.draw(self.screen)
         self.rabbit_sprite.draw(self.screen)
+        self.bear_sprite.draw(self.screen)
+        self.boar_sprite.draw(self.screen)
+        self.alligator_sprite.draw(self.screen)
         pg.display.flip()
+    def update_window_caption(self):
+        
+        rabbit_count, bear_count, boar_count, alligator_count = self.count_population()
+
+        if self.previous_day != self.current_day:
+            pg.display.set_caption(f"{TITLE} - Day {self.current_day} - Rabbits: {rabbit_count} - Bears: {bear_count} - Boars: {boar_count} - Alligators: {alligator_count}")
+            
+            self.previous_day = self.current_day
+        else:
+            pg.display.set_caption(f"{TITLE} - Day {self.current_day} - Rabbits: {rabbit_count} - Bears: {bear_count} - Boars: {boar_count} - Alligators: {alligator_count}")
 
 if __name__ == "__main__":
     g = Game()

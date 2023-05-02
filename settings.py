@@ -34,13 +34,13 @@ SIMULATION_HOUR =  (day_lenth_min/24) * (1/day_lenth_min) * 60
 
 #animal max numbers
 bear_max_h = 410
-bear_max_e = 15 # * health in kilos
+bear_matrat_e = 15 # * health in kilos
 
 boar_max_h = 320
-boar_max_e = 24 # the matrat or max in this case is used to determin metabloic rate in a day
+boar_matrat_e = 24 # the matrat or max in this case is used to determin metabloic rate in a day
 
 rabbit_max_h = 3 #kilos
 rabbit_matrat_e = 190 # 190 * health
 
-alli_max_h = 455
-alli_matrat_e = 20
+alligator_max_h = 455
+alligator_matrat_e = 20
