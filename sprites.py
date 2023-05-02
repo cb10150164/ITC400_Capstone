@@ -85,9 +85,14 @@ class Animal(pg.sprite.Sprite):
         self.herding = herding
         self.territorial = territorial
 
+    def reduce_health(self):
+        self.health -= 1
+        if self.health <= 0:
+            self.die()
+
 class Alligator(Animal):
-    def __init__(self, game, x, y):
-        super().__init__(game, x, y, health=200, strength=20, speed=1, energy=100, fat=0, aggression=50, herding=False, territorial=True)
+    def __init__(self, game, x, y,health=None, energy=None):
+        super().__init__(game, x, y, health=170, strength=20, speed=1, energy=100, fat=0, aggression=50, herding=True, territorial=True)
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(GREEN)
         self.rect = self.image.get_rect()
@@ -100,7 +105,7 @@ class Alligator(Animal):
 
 class Boar(Animal):
     def __init__(self, game, x, y):
-        super().__init__(game, x, y, health=170, strength=20, speed=1, energy=100, fat=0, aggression=50, herding=False, territorial=True)
+        super().__init__(game, x, y, health=170, strength=20, speed=1, energy=100, fat=0, aggression=50, herding=True, territorial=True)
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(BLACK)
         self.rect = self.image.get_rect()
@@ -127,15 +132,29 @@ class Bear(Animal):
 
 class Rabbit(Animal):
     def __init__(self, game, x, y):
-       super().__init__(game, x, y, health = 2, strength=20, speed=1, energy= 190, fat=0, aggression=50, herding=False, territorial=True)
-       self.move_cooldown = 0
-       self.image = pg.Surface((TILESIZE, TILESIZE))
-       self.image.fill(WHITE)
-       self.rect = self.image.get_rect()
-       self.image = pg.transform.scale(self.image, (TILESIZE // 2, TILESIZE // 2)) # Scale the image
-       self.rect.x = x * TILESIZE+TILESIZE  // 4 # Center the sprite within the tile horizontally
-       self.rect.y = y * TILESIZE+TILESIZE  // 4
+        health = random.uniform(1, rabbit_max_h)
+        # Calculate initial energy based on health and matrat
+        energy = health * rabbit_matrat_e
+        super().__init__(game, x, y, health=health, strength=20, speed=.3, energy=energy, fat=0, aggression=50, herding=False, territorial=False)
+        self.velocity = pg.Vector2(random.choice([-1, 0, 1]), random.choice([-1, 0, 1])) * self.speed
+        self.max_energy = self.health * rabbit_matrat_e
+        self.image = pg.Surface((TILESIZE, TILESIZE))
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.image = pg.transform.scale(self.image, (TILESIZE // 2, TILESIZE // 2)) # Scale the image
+        self.rect.x = x * TILESIZE + TILESIZE // 4 # Center the sprite within the tile horizontally
+        self.rect.y = y * TILESIZE + TILESIZE // 4
+        self.last_energy_loss_time = 0
        
+    def energy_loss_per_hour(self):
+        return SIMULATION_HOUR * self.health
+           
+    def decrease_energy(self, energy_loss):
+        self.energy -= energy_loss
+        if self.energy <= 0:
+            self.reduce_health()
+            self.energy = rabbit_matrat_e * self.health
+
 
     def consume_grass(self, game, simulation_time):
         grass_to_consume = pg.sprite.spritecollide(self, game.grass_tiles, False)
@@ -145,24 +164,33 @@ class Rabbit(Animal):
                 grass.consumed = True
                 grass.consumption_time = simulation_time
                 grass.image.fill(YELLOW)  # Change the color to yellow
+                self.energy += 33
+           
+            if self.energy > self.max_energy:
+                self.health += 1
+                self.energy = self.health * rabbit_matrat_e
+
     
     def update(self):
         #print("Rabbit update method called")
-        if self.game.simulation_time >= self.move_cooldown:
-            move_directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (0, 0)]
-            dx, dy = random.choice(move_directions)
+        if random.random() < self.speed:
+            self.move()
+            if self.energy <= self.max_energy / 2:
+                self.consume_grass(self.game, self.game.simulation_time)
 
-            self.move(dx, dy)
-            self.consume_grass(self.game, self.game.simulation_time)
-
+            #self.move(dx, dy)
+            #self.consume_grass(self.game, self.game.simulation_time)
             # Set the move_cooldown to the current simulation_time plus the desired cooldown time in seconds
-            self.move_cooldown = self.game.simulation_time + 1.0
-
+            
+        if self.game.simulation_time - self.last_energy_loss_time >= SIMULATION_HOUR:
+            energy_loss = self.energy_loss_per_hour()
+            self.decrease_energy(energy_loss)
+            self.last_energy_loss_time = self.game.simulation_time
 
         
     def move(self, dx=0, dy=0):
-        new_x = (self.x + dx) % GRIDWIDTH
-        new_y = (self.y + dy) % GRIDHEIGHT
+        new_x = (self.x + self.velocity.x) % GRIDWIDTH
+        new_y = (self.y + self.velocity.y) % GRIDHEIGHT
 
         if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
             self.x = new_x
@@ -170,3 +198,5 @@ class Rabbit(Animal):
             self.rect.x = self.x * TILESIZE + TILESIZE // 4
             self.rect.y = self.y * TILESIZE + TILESIZE // 4
 
+    def die(self):
+        self.kill()

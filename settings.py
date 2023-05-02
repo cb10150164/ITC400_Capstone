@@ -23,17 +23,24 @@ GRIDHEIGHT = int(HEIGHT / TILESIZE)
 
 #time 
 DAY_LENGTH = 600  # Length of a day in seconds (10 minutes)
-DAY_LENGTH_SECONDS = 5 * 60
+day_lenth_min = 10
+DAY_LENGTH_SECONDS = day_lenth_min * 60
+
+
+# 1day/number of mintues  = days/min
+# 1hr=1/24day
+#(1/24)/( day/min) = minutes * 60 seconds/minute = secounds rounded up
+SIMULATION_HOUR =  (day_lenth_min/24) * (1/day_lenth_min) * 60
 
 #animal max numbers
-bear_max_h = 900
+bear_max_h = 410
 bear_max_e = 15 # * health in kilos
 
-boar_max_h = 700
+boar_max_h = 320
 boar_max_e = 24 # the matrat or max in this case is used to determin metabloic rate in a day
 
-rabbit_max_h = 6
+rabbit_max_h = 3 #kilos
 rabbit_matrat_e = 190 # 190 * health
 
-alli_max_h = 1000
+alli_max_h = 455
 alli_matrat_e = 20
