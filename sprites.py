@@ -97,10 +97,12 @@ class Animal(pg.sprite.Sprite):
         new_x = (self.x + self.velocity.x) % GRIDWIDTH
         new_y = (self.y + self.velocity.y) % GRIDHEIGHT
 
-        if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
+        if not self.collide_with_walls(new_x - self.x, 0):  # Check for horizontal collisions
             self.x = new_x
-            self.y = new_y
             self.rect.x = self.x * TILESIZE
+
+        if not self.collide_with_walls(0, new_y - self.y):  # Check for vertical collisions
+            self.y = new_y
             self.rect.y = self.y * TILESIZE
 
     def update(self):
@@ -115,14 +117,26 @@ class Animal(pg.sprite.Sprite):
             self.decrease_energy(energy_loss)
             self.last_energy_loss_time = self.game.simulation_time
 
+    def collide_with_walls(self, dx=0, dy=0):
+        future_rect = pg.Rect(self.rect.x + dx * TILESIZE, self.rect.y + dy * TILESIZE, self.rect.width, self.rect.height)
+        for wall in self.game.walls:
+            if future_rect.colliderect(wall.rect):
+                return True
+        return False
+
+
 class Alligator(Animal):
     def __init__(self, game, x, y, health=None, energy=None):
-        super().__init__(game, x, y, health=170, strength=20, speed=.4, energy=100, aggression=50, herding=True, territorial=True)
+        health = random.uniform(70, alligator_max_h)
+        # Calculate initial energy based on health and matrat
+        energy = health * alligator_matrat_e
+        super().__init__(game, x, y, health=health, strength=20, speed=.1, energy=energy, aggression=50, herding=False, territorial=False)
         self.image = pg.Surface((TILESIZE, TILESIZE))
-        self.image.fill(DARKGREY)
+        self.image.fill(LIGHTGREY)
         self.rect = self.image.get_rect()
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
+        self.last_energy_loss_time = 0
         self.velocity = pg.Vector2(random.choice([-1, 0, 1]), random.choice([-1, 0, 1])) * self.speed
         self.max_energy = self.health * alligator_matrat_e
 
@@ -153,15 +167,28 @@ class Alligator(Animal):
             if self.energy <= self.max_energy / 2:
                 self.consume(self.game, self.game.simulation_time)
 
+    def move(self, dx=0, dy=0):
+        new_x = (self.x + self.velocity.x) % GRIDWIDTH
+        new_y = (self.y + self.velocity.y) % GRIDHEIGHT
+
+        if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
+            self.x = new_x
+            self.y = new_y
+            self.rect.x = self.x * TILESIZE
+            self.rect.y = self.y * TILESIZE
 
 class Boar(Animal):
     def __init__(self, game, x, y):
-        super().__init__(game, x, y, health=170, strength=20, speed=.4, energy=100, aggression=50, herding=True, territorial=True)
+        health = random.uniform(100, boar_max_h)
+        # Calculate initial energy based on health and matrat
+        energy = health * boar_matrat_e
+        super().__init__(game, x, y, health=health, strength=20, speed=.1, energy=energy, aggression=50, herding=False, territorial=False)
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(BLACK)
         self.rect = self.image.get_rect()
         self.rect.x = x * TILESIZE
         self.rect.y = y * TILESIZE
+        self.last_energy_loss_time = 0
         self.velocity = pg.Vector2(random.choice([-1, 0, 1]), random.choice([-1, 0, 1])) * self.speed
         self.max_energy = self.health * boar_matrat_e
 
@@ -175,6 +202,9 @@ class Boar(Animal):
             self.energy = self.health * boar_matrat_e
 
     def consume(self, game, simulation_time):
+        if self.energy >= self.max_energy:  # Stop consuming if the energy is at or above the maximum
+            return
+
         grass_to_consume = pg.sprite.spritecollide(self, game.grass_tiles, False)
         if grass_to_consume:
             grass = grass_to_consume[0]
@@ -182,26 +212,44 @@ class Boar(Animal):
                 grass.consumed = True
                 grass.consumption_time = simulation_time
                 grass.image.fill(YELLOW)  # Change the color to yellow
-                self.energy += 25  # Adjust the energy gain as needed
+                self.energy += 33  # Adjust the energy gain as needed
 
             if self.energy > self.max_energy:
                 self.health += 1
                 self.energy = self.health * boar_matrat_e
+                self.max_energy = self.health * boar_matrat_e
+
 
     def update(self):
+        if random.random() < 0.1:  # Adjust this value for more or less frequent direction changes
+            self.velocity = pg.Vector2(random.choice([-1, 0, 1]), random.choice([-1, 0, 1])) * self.speed
+        self.move()
+
+        if self.energy <= self.max_energy / 2:
+            self.consume(self.game, self.game.simulation_time)
+
         if self.game.simulation_time - self.last_energy_loss_time >= SIMULATION_HOUR:
             energy_loss = self.energy_loss_per_hour()
             self.decrease_energy(energy_loss)
             self.last_energy_loss_time = self.game.simulation_time
 
-        if random.random() < self.speed:
-            self.move()
-            if self.energy <= self.max_energy / 2:
-                self.consume(self.game, self.game.simulation_time)
+    def move(self):
+        new_x = (self.x + self.velocity.x) % GRIDWIDTH
+        new_y = (self.y + self.velocity.y) % GRIDHEIGHT
+
+        if not self.collide_with_walls(new_x - self.x, new_y - self.y):
+            if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
+                self.x = new_x
+                self.y = new_y
+                self.rect.x = self.x * TILESIZE
+                self.rect.y = self.y * TILESIZE
 
 class Bear(Animal):
     def __init__(self, game, x, y):
-        super().__init__(game, x, y, health=300, strength=20, speed=.5, energy=100, aggression=50, herding=False, territorial=True)
+        health = random.uniform(45, bear_max_h)
+        # Calculate initial energy based on health and matrat
+        energy = health * bear_matrat_e
+        super().__init__(game, x, y, health=health, strength=20, speed=.1, energy=energy, aggression=50, herding=False, territorial=False)
         self.image = pg.Surface((TILESIZE, TILESIZE))
         self.image.fill(BROWN)
         self.rect = self.image.get_rect()
@@ -210,15 +258,17 @@ class Bear(Animal):
         self.velocity = pg.Vector2(random.choice([-1, 0, 1]), random.choice([-1, 0, 1])) * self.speed
         self.last_energy_loss_time = 0
         
-    def move(self, dx=0, dy=0):
+    def move(self):
         new_x = (self.x + self.velocity.x) % GRIDWIDTH
         new_y = (self.y + self.velocity.y) % GRIDHEIGHT
 
-        if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
-            self.x = new_x
-            self.y = new_y
-            self.rect.x = self.x * TILESIZE
-            self.rect.y = self.y * TILESIZE   
+        if not self.collide_with_walls(new_x - self.x, new_y - self.y):
+            if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
+                self.x = new_x
+                self.y = new_y
+                self.rect.x = self.x * TILESIZE
+                self.rect.y = self.y * TILESIZE
+  
             
     def update(self):
         if random.random() < self.speed:
@@ -232,7 +282,7 @@ class Rabbit(Animal):
         health = random.uniform(1, rabbit_max_h)
         # Calculate initial energy based on health and matrat
         energy = health * rabbit_matrat_e
-        super().__init__(game, x, y, health=health, strength=20, speed=.3, energy=energy, aggression=50, herding=False, territorial=False)
+        super().__init__(game, x, y, health=health, strength=20, speed=.1, energy=energy, aggression=50, herding=False, territorial=False)
         self.velocity = pg.Vector2(random.choice([-1, 0, 1]), random.choice([-1, 0, 1])) * self.speed
         self.max_energy = self.health * rabbit_matrat_e
         self.image = pg.Surface((TILESIZE, TILESIZE))
@@ -266,34 +316,32 @@ class Rabbit(Animal):
             if self.energy > self.max_energy:
                 self.health += 1
                 self.energy = self.health * rabbit_matrat_e
+                self.energy = self.health * rabbit_matrat_e
 
     
     def update(self):
-        #print("Rabbit update method called")
-        if random.random() < self.speed:
-            self.move()
-            if self.energy <= self.max_energy / 2:
-                self.consume_grass(self.game, self.game.simulation_time)
+        if random.random() < 0.1:  # Adjust this value for more or less frequent direction changes
+            self.velocity = pg.Vector2(random.choice([-1, 0, 1]), random.choice([-1, 0, 1])) * self.speed
+        self.move()
 
-            #self.move(dx, dy)
-            #self.consume_grass(self.game, self.game.simulation_time)
-            # Set the move_cooldown to the current simulation_time plus the desired cooldown time in seconds
-            
+        if self.energy <= self.max_energy / 2:
+            self.consume_grass(self.game, self.game.simulation_time)
+
         if self.game.simulation_time - self.last_energy_loss_time >= SIMULATION_HOUR:
             energy_loss = self.energy_loss_per_hour()
             self.decrease_energy(energy_loss)
             self.last_energy_loss_time = self.game.simulation_time
 
-        
     def move(self, dx=0, dy=0):
         new_x = (self.x + self.velocity.x) % GRIDWIDTH
         new_y = (self.y + self.velocity.y) % GRIDHEIGHT
 
-        if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
-            self.x = new_x
-            self.y = new_y
-            self.rect.x = self.x * TILESIZE + TILESIZE // 4
-            self.rect.y = self.y * TILESIZE + TILESIZE // 4
+        if not self.collide_with_walls(new_x - self.x, new_y - self.y):
+            if 0 <= new_x < GRIDWIDTH and 0 <= new_y < GRIDHEIGHT:
+                self.x = new_x
+                self.y = new_y
+                self.rect.x = self.x * TILESIZE + TILESIZE // 4
+                self.rect.y = self.y * TILESIZE + TILESIZE // 4
 
     def die(self):
         self.kill()

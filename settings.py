@@ -23,7 +23,7 @@ GRIDHEIGHT = int(HEIGHT / TILESIZE)
 
 #time 
 DAY_LENGTH = 600  # Length of a day in seconds (10 minutes)
-day_lenth_min = 10
+day_lenth_min = 2
 DAY_LENGTH_SECONDS = day_lenth_min * 60
 
 

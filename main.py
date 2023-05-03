@@ -156,10 +156,9 @@ class Game:
         self.boar_sprite.draw(self.screen)
         self.alligator_sprite.draw(self.screen)
         pg.display.flip()
+    
     def update_window_caption(self):
-        
         rabbit_count, bear_count, boar_count, alligator_count = self.count_population()
-
         if self.previous_day != self.current_day:
             pg.display.set_caption(f"{TITLE} - Day {self.current_day} - Rabbits: {rabbit_count} - Bears: {bear_count} - Boars: {boar_count} - Alligators: {alligator_count}")
             
