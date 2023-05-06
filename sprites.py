@@ -402,7 +402,22 @@ class Alligator(Animal):
     def drink_water(self):
         if self.is_near_water():
             self.last_water_drinking_time = self.game.simulation_time
+    def hunt_prey(self):
+        # Hunt for prey (Rabbit, Boar, or Bear)
+        closest_prey = None
+        closest_prey_dist = None
+        for prey in self.game.rabbit_sprite | self.game.boar_sprite | self.game.bear_sprite:
+            if prey != self:  # Exclude itself from the list of potential prey
+                dist = self.get_distance_to(prey)
+                if closest_prey is None or dist < closest_prey_dist:
+                    closest_prey = prey
+                    closest_prey_dist = dist
 
+        if closest_prey is not None:
+            if closest_prey_dist <= 1:  # Close enough to attack
+                self.attack(closest_prey)
+            else:
+                self.move_towards(closest_prey)
 
 
 
@@ -568,7 +583,22 @@ class Bear(Animal):
     def drink_water(self):
         if self.is_near_water():
             self.last_water_drinking_time = self.game.simulation_time
+    def hunt_prey(self):
+        # Hunt for prey (Rabbit, Boar, or Alligator)
+        closest_prey = None
+        closest_prey_dist = None
+        for prey in self.game.rabbit_sprite | self.game.boar_sprite | self.game.alligator_sprite:
+            if prey != self:  # Exclude itself from the list of potential prey
+                dist = self.get_distance_to(prey)
+                if closest_prey is None or dist < closest_prey_dist:
+                    closest_prey = prey
+                    closest_prey_dist = dist
 
+        if closest_prey is not None:
+            if closest_prey_dist <= 1:  # Close enough to attack
+                self.attack(closest_prey)
+            else:
+                self.move_towards(closest_prey)
 
 
 
